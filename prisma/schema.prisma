@@ -380,3 +380,107 @@ enum one_time_token_type {
 
   @@schema("auth")
 }
+
+// App schema
+model products {
+  id                String              @id @db.Uuid
+  name              String
+  description       String
+  price             Int
+  currency_id       String              @db.Uuid
+  currency          currencies          @relation(fields: [currency_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  created_at        DateTime?           @default(now()) @db.Timestamptz(6)
+  updated_at        DateTime?           @default(now()) @db.Timestamptz(6)
+  invoices_products invoices_products[]
+
+  @@schema("public")
+}
+
+model currencies {
+  id         String     @id @db.Uuid
+  name       String
+  acronym    String
+  created_at DateTime?  @default(now()) @db.Timestamptz(6)
+  updated_at DateTime?  @default(now()) @db.Timestamptz(6)
+  products   products[]
+  expenses   expenses[]
+
+  @@schema("public")
+}
+
+model user_preferences {
+  id      String @id @db.Uuid
+  user_id String @db.Uuid
+  name    String
+  value   String
+
+  created_at DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at DateTime? @default(now()) @db.Timestamptz(6)
+
+  @@unique([user_id, name])
+  @@schema("public")
+}
+
+model expenses {
+  id          String     @id @db.Uuid
+  name        String
+  date_issued DateTime?  @db.Timestamptz(6)
+  amount      Int
+  currency_id String     @db.Uuid
+  currency    currencies @relation(fields: [currency_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  created_at  DateTime?  @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime?  @default(now()) @db.Timestamptz(6)
+
+  @@schema("public")
+}
+
+model invoices {
+  id                String              @id @db.Uuid
+  user_id           String              @db.Uuid
+  client_id         String              @db.Uuid
+  client            clients             @relation(fields: [client_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  created_at        DateTime?           @default(now()) @db.Timestamptz(6)
+  updated_at        DateTime?           @default(now()) @db.Timestamptz(6)
+  receipt           receipt[]
+  invoices_products invoices_products[]
+
+  @@schema("public")
+}
+
+model clients {
+  id         String     @id @db.Uuid
+  name       String
+  email      String
+  phone      String
+  country    String
+  invoices   invoices[]
+  receipts   receipt[]
+  created_at DateTime?  @default(now()) @db.Timestamptz(6)
+  updated_at DateTime?  @default(now()) @db.Timestamptz(6)
+
+  @@schema("public")
+}
+
+model receipt {
+  id         String    @id @db.Uuid
+  invoice_id String    @db.Uuid
+  client_id  String    @db.Uuid
+  invoice    invoices  @relation(fields: [invoice_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  client     clients   @relation(fields: [client_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  created_at DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at DateTime? @default(now()) @db.Timestamptz(6)
+
+  @@schema("public")
+}
+
+model invoices_products {
+  id         String    @id @db.Uuid
+  invoice_id String    @db.Uuid
+  product_id String    @db.Uuid
+  invoice    invoices  @relation(fields: [invoice_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  product    products  @relation(fields: [product_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  created_at DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at DateTime? @default(now()) @db.Timestamptz(6)
+
+  @@schema("public")
+}
